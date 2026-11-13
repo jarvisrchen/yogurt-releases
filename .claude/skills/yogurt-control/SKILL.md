@@ -1,0 +1,56 @@
+---
+name: yogurt-control
+description: Read or control a meeting in a running yogurt instance. Use when handed a yogurt meeting URL (http://localhost:7878/meeting/<id>/post) or asked "what was discussed in this meeting", "summarize this yogurt meeting", "what did they say about X" - or a vague reference like "my last meeting with Steven", "my 1:1 with Steven" - and for "start a meeting in yogurt", "start recording", "end/stop the meeting", "is yogurt recording" - and for "export this meeting", "share this meeting with a friend", "import this .yogurt file".
+---
+
+# Read and control yogurt
+
+Run `yogurt ctl` first, with no arguments: it prints status - instances found, the active meeting, and the active provider.
+Needs yogurt 0.8.0 or newer: check with `yogurt --version`, and run `brew upgrade jarvisrchen/yogurt/yogurt` if it's older.
+
+## The binary
+
+<!-- yogurt-cli:start -->
+- `yogurt start` - Launch the local server and open the browser
+- `yogurt doctor` - Print diagnostic info (rust, macOS, perms, providers, models) + repair actions
+- `yogurt ctl` - Control a running yogurt instance: status, meetings, detection, windows
+  - `yogurt ctl status` - Instances found, active/detected meeting, stt engine, provider, each server's permission grants
+  - `yogurt ctl meeting` - Create, start, stop, and read meetings on a running instance
+  - `yogurt ctl detect` - What meeting detection currently sees (MTG-11), or dismiss the prompt
+  - `yogurt ctl windows` - On-screen windows and each one's meeting-detection verdict. No server needed
+  - `yogurt ctl settings` - General settings the server exposes: get and set
+  - `yogurt ctl provider` - Configured LLM providers: list, activate, test
+  - `yogurt ctl models` - STT models: list, download, cancel, delete
+  - `yogurt ctl cloud` - Yogurt Cloud sync: status, push, and rename. Connecting stays in the UI
+  - `yogurt ctl import` - Import meetings from another app. Today that is Granola
+  - `yogurt ctl ws` - Subscribe to the server websocket, printing one JSON frame per line
+<!-- yogurt-cli:end -->
+
+[docs/FEATURES.md](../../../docs/FEATURES.md) maps every feature to its UI path, API route, and `ctl` command.
+Reads fall back to the local database (`source: db`) when no server answers, so they still work with yogurt not running.
+
+## Finding a meeting without a URL
+
+`yogurt ctl meeting search <word> --json` is full-text over title, notes, and transcript, newest first among equal matches.
+Search one word (a person's name, a topic), not a phrase - "Steven" matches, "1:1 with Steven" only matches that exact string, and "Steve" does not match "Steven".
+Narrow by date client-side on `started_at`, then read it with `ctl meeting summary <id>`.
+`ctl meeting show last` is the most recent meeting.
+`ctl meeting list --json` is newest first and returns `{"meetings":[...],"total":n}`, where each row is a summary (`id`, `title`, `started_at`, `ended_at`, `starred`, `labels`, `has_enriched`) with no notes or transcript.
+Add `--limit N` for the newest N rows, since `total` still counts every meeting; without it `ctl` pages through them all.
+`ctl meeting show <id>` or `summary <id>` reads the body.
+
+## Sharing a meeting
+
+`ctl meeting export <url-or-id> [-o <file>]` saves a finished meeting as a `.yogurt` file someone who also runs yogurt can import.
+It writes `<title>.yogurt` in the current directory by default and never overwrites an existing file.
+`ctl meeting import <file> --json` brings one in and returns `{"id","existing","url"}`.
+`existing` is true when the meeting was already here, either from an earlier import of the same file or because this yogurt recorded it.
+Both need a running server.
+
+Three rules:
+
+- **Summary before transcript.** `ctl meeting summary` is small; `ctl meeting transcript` is large - reach for it only when the summary doesn't answer the question.
+- **One recording at a time.** Run `ctl status` before `ctl meeting start`, since a second recording overlaps audio captures.
+- **Never cat or print the session token.** `ctl` handles auth itself; `~/.yogurt/session-token` is not for the agent to read.
+
+See [docs/AI-INTEGRATION.md](../../../docs/AI-INTEGRATION.md) for anything `ctl` doesn't cover yet.
