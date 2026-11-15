@@ -2,6 +2,7 @@
 
 This repo holds the published builds of yogurt, a local-first meeting copilot for macOS, and its Android companion app.
 It has no source code.
+The free, MIT-licensed source is [jarvisrchen/yogurt-open](https://github.com/jarvisrchen/yogurt-open), and Yogurt Pro is at [yogurt-ai.dev](https://yogurt-ai.dev).
 
 Install on a Mac with Homebrew:
 
