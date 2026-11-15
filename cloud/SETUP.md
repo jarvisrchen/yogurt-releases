@@ -121,10 +121,10 @@ Chat, Enhance, and recording there need the variables from step 2.
 
 The Cloud updates itself.
 Once a day it checks [yogurt-releases](https://github.com/jarvisrchen/yogurt-releases/releases/latest) for a newer bundle.
-When there is one, it checks the download against the release's `.sha256`, applies any schema changes, and deploys the new webapp to your Vercel project with your saved Vercel token.
+When there is one, it checks that Yogurt's release key signed the download, applies any schema changes, and deploys the new webapp to your Vercel project with your saved Vercel token.
 Your meetings, login, and PIN stay as they are.
 
-- It never installs a bundle that fails its check, an older version, or one your license does not cover.
+- It never installs an unsigned bundle or one signed by any other key, an older version, or one your license does not cover.
 - If an update fails, the running Cloud stays as it was, and the next day's check tries again.
 - Settings, About, in the webapp shows the version the Cloud runs and when it updated, and why the last update failed, if it did.
 - A Cloud updates before your Macs do, and each release keeps taking pushes from the Mac release before it.
